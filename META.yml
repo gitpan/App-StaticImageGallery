@@ -18,6 +18,7 @@ requires:
   Class::MOP: 0
   DateTime: 0
   File::Basename: 0
+  File::Path: 0
   Getopt::Lucid: 0
   Imager: 0
   MIME::Base64: 0
@@ -31,7 +32,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=App-StaticImageGallery
   homepage: http://search.cpan.org/dist/App-StaticImageGallery
   repository: git://github.com/rbo/app-staticimagegallery.git
-version: 0.001
+version: 0.002
 x_Dist_Zilla:
   plugins:
     -

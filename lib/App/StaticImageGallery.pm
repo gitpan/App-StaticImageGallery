@@ -1,12 +1,13 @@
 package App::StaticImageGallery;
 BEGIN {
-  $App::StaticImageGallery::VERSION = '0.001';
+  $App::StaticImageGallery::VERSION = '0.002';
 }
 
 use App::StaticImageGallery::Dir;
 use Path::Class ();
 use Getopt::Lucid qw( :all );
 use Pod::Usage;
+use File::Path ();
 
 sub new_with_options {
     my $class = shift;
@@ -14,17 +15,50 @@ sub new_with_options {
     my @specs = (
         Counter("verbose|v"),
         Counter("quiet|q"),
-        Param("dir|d"),
+        Switch("recursive")->default( 1 ),
         Param("style|s")->default("Simple"),
-        Switch("help|h")->anycase,
-        Switch("man")->anycase,
     );
-    my $self  = {
-        _opt     => Getopt::Lucid->getopt(\@specs),
-        _arg_dir => shift @ARGV,
+
+    my $cb = sub {
+        my ($self) = @_;
+        print "TODO Command ",$self->cmd_name,"\n";
     };
 
+    my $self  = {
+        _opt      => Getopt::Lucid->getopt(\@specs),
+        _cmd_name => shift @ARGV,
+        _work_dir => shift @ARGV || '.',
+        _cmd_dipatcher => {
+            build           => sub { shift->cmd_build(@_) },
+            help            => sub {
+                my $self = shift;
+                pod2usage(
+                    -input => __FILE__,
+                    -verbose => 99,
+                    -exitval => 0,
+                    -sections => ['NAME','VERSION','SYNOPSIS','COMMANDS','OPTIONS']
+                );
+
+            },
+            imager_formats  => sub {
+                my $self = shift;
+                require Imager;
+                $self->msg("Supported image formats: " . join(', ',keys %Imager::formats) . '.');
+            },
+            clean           => sub { shift->cmd_clean(@_); },
+            rebuild         => sub {
+                my $self = shift;
+                $self->cmd_clean(@_);
+                $self->cmd_build(@_);
+            },
+            init            => $cb,
+            list_styles     => $cb,
+        }
+    };
     bless $self, $class;
+
+    $self->msg_verbose(2,"Work dir: %s", $self->{_work_dir});
+    return $self;
 }
 
 sub opt { shift->{_opt} };
@@ -35,34 +69,43 @@ sub config {
     }
 }
 
-sub run {
+sub cmd_name { shift->{_cmd_name}; };
+
+sub _disptach_cmd {
+    my $self = shift;
+    if (defined $self->{_cmd_dipatcher}->{ $self->cmd_name } ){
+        $self->{_cmd_dipatcher}->{ $self->cmd_name  }($self);
+    }else{
+        die sprintf("Command '%s' not found.",$self->cmd_name);
+    }
+}
+
+sub cmd_build {
     my ($self) = @_;
 
-    if ($self->opt->get_help() || $self->opt->get_man() ){
-        pod2usage(
-            -input => __FILE__,
-            -verbose => $self->opt->get_man()  ? 2 : 1,
-            -exitval => 0,
-        );
-    }
-
-    if ( length($self->opt->get_dir()) < 1
-        and length($self->{_arg_dir}) < 1
-    ){
-        $self->msg_error("\nRequired option 'dir' not found.\n");
-        pod2usage(
-            -input => __FILE__,
-            -verbose => 1,
-            -exitval => 1,
-        );
-
-    }
     my $dir = App::StaticImageGallery::Dir->new(
         ctx => $self,
-        work_dir => Path::Class::dir($self->opt->get_dir() || $self->{_arg_dir}),
+        work_dir => Path::Class::dir( $self->{_work_dir} ),
     );
 
     $dir->write_index();
+    return;
+}
+
+sub cmd_clean {
+    my ($self) = @_;
+
+    my $dir = App::StaticImageGallery::Dir->new(
+        ctx => $self,
+        work_dir => Path::Class::dir( $self->{_work_dir} ),
+    );
+
+    return $dir->clean_work_dir();
+}
+
+sub run {
+    my ($self) = @_;
+    $self->_disptach_cmd();
 }
 
 sub msg_verbose {
@@ -72,7 +115,7 @@ sub msg_verbose {
     return if $self->opt->get_verbose() == 0;
 
     if ( $self->opt->get_verbose() >= $level ){
-        printf "VERBOSE: " . $format . "\n" ,@_;
+        printf '[sig:VERBOSE:%2s] ' . $format . "\n" ,$level,@_;
     }
     return;
 }
@@ -81,7 +124,7 @@ sub msg {
     my $self = shift;
     my $format = shift;
     return if $self->opt->get_quiet() > 0;
-    printf $format . "\n" ,@_;
+    printf '[sig] ' . $format . "\n" ,@_;
     return;
 }
 
@@ -107,19 +150,43 @@ App::StaticImageGallery - Static Image Gallery
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
 =head1 SYNOPSIS
 
-    ./bin/sig [options] [dir]
+    ./bin/sig [command] [options]
+
+=head1 COMMANDS
+
+=head2 build [dir]
+
+Create image gallery
+
+Dir: Working directory, direcotry with the images. 
+Write html pages and thumbnails into this directory.
+
+
+=head2 imager_formats
+
+List all available image formats
+
+=head2 init
+
+Initila App-StaticImageGallery
+
+=head2 list_styles
+
+List all available styles and there source
+
+=head2 clean
+
+Remove all image gallery files
+
+=head2 rebuild
+
+Run command clean and build.
 
 =head1 OPTIONS
-
-
-=head2 B<--dir|-d>
-
-Working directory, direcotry with the images.
-Write html pages and thumbnails into this directory.
 
 =head2 B<--style|-s>
 
@@ -142,6 +209,10 @@ Verbose mode, more v more output...
 =head2 B<--quiet|-q>
 
 Quite mode
+
+=head2 B<--no-recursive>
+
+Disabled recursiv mode
 
 =head1 METHODS
 
@@ -173,6 +244,18 @@ Returns the L<Getopt::Lucid> object.
 
 =item run
 
+=item cmd_build
+
+Command build
+
+=item cmd_clean
+
+Command clean
+
+=item cmd_name
+
+Name of the current command
+
 =back
 
 =head1 TODO
@@ -192,6 +275,10 @@ Returns the L<Getopt::Lucid> object.
 =item * Test unsupported format
 
 =item * Added config file support ( App::StaticImageGallery->config )
+
+=item * Write App::StaticImageGallery::Style::Source::FromDir
+
+=item * Add config file ~/.sig/config.ini
 
 =back
 

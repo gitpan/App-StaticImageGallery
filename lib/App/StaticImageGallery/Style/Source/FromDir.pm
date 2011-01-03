@@ -1,6 +1,6 @@
 package App::StaticImageGallery::Style::Source::FromDir;
 BEGIN {
-  $App::StaticImageGallery::Style::Source::FromDir::VERSION = '0.001';
+  $App::StaticImageGallery::Style::Source::FromDir::VERSION = '0.002';
 }
 use parent 'App::StaticImageGallery::Base::Source';
 
@@ -13,7 +13,7 @@ App::StaticImageGallery::Base::Style
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
 =head1 DESCRIPTION
 

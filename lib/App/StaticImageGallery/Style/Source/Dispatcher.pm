@@ -1,6 +1,6 @@
 package App::StaticImageGallery::Style::Source::Dispatcher;
 BEGIN {
-  $App::StaticImageGallery::Style::Source::Dispatcher::VERSION = '0.001';
+  $App::StaticImageGallery::Style::Source::Dispatcher::VERSION = '0.002';
 }
 
 use App::StaticImageGallery::Style::Source::FromPackage;
@@ -24,7 +24,7 @@ App::StaticImageGallery::Style::Source::Dispatcher
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
 =head1 DESCRIPTION
 

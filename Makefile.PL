@@ -18,7 +18,9 @@ my %WriteMakefileArgs = (
     'ExtUtils::MakeMaker' => '6.31'
   },
   'DISTNAME' => 'App-StaticImageGallery',
-  'EXE_FILES' => [],
+  'EXE_FILES' => [
+    'bin/sig'
+  ],
   'LICENSE' => 'perl',
   'NAME' => 'App::StaticImageGallery',
   'PREREQ_PM' => {
@@ -26,6 +28,7 @@ my %WriteMakefileArgs = (
     'Class::MOP' => '0',
     'DateTime' => '0',
     'File::Basename' => '0',
+    'File::Path' => '0',
     'Getopt::Lucid' => '0',
     'Imager' => '0',
     'MIME::Base64' => '0',
@@ -36,7 +39,7 @@ my %WriteMakefileArgs = (
     'UNIVERSAL' => '0',
     'parent' => '0'
   },
-  'VERSION' => '0.001',
+  'VERSION' => '0.002',
   'test' => {
     'TESTS' => 't/*.t'
   }

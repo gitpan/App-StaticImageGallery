@@ -1,8 +1,13 @@
 Changes
+LICENSE
 MANIFEST
+MANIFEST.SKIP
+META.json
 META.yml
 Makefile.PL
 README
+bin/sig
+dist.ini
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -27,9 +32,13 @@ lib/App/StaticImageGallery/Style/Source/FromDir.pm
 lib/App/StaticImageGallery/Style/Source/FromPackage.pm
 t/00-load.t
 t/01-Dir.t
+t/02-Commands.t
 t/boilerplate.t
 t/images/JPEG.jpg
 t/images/PNG.png
 t/images/Source.pxm
+t/images/sub_folder/JPEG.jpg
+t/images/sub_folder/PNG.png
+t/lib/App/StaticImageGallery/Style/Test.pm
 t/pod-coverage.t
 t/pod.t

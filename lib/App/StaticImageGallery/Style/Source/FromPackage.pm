@@ -1,6 +1,6 @@
 package App::StaticImageGallery::Style::Source::FromPackage;
 BEGIN {
-  $App::StaticImageGallery::Style::Source::FromPackage::VERSION = '0.001';
+  $App::StaticImageGallery::Style::Source::FromPackage::VERSION = '0.002';
 }
 use MIME::Base64;
 use Class::MOP     ();
@@ -71,7 +71,7 @@ App::StaticImageGallery::Style::Source::FromPackage
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
 =head1 DESCRIPTION
 

@@ -1,6 +1,6 @@
 package App::StaticImageGallery::Dir;
 BEGIN {
-  $App::StaticImageGallery::Dir::VERSION = '0.001';
+  $App::StaticImageGallery::Dir::VERSION = '0.002';
 }
 
 use Path::Class    ();
@@ -32,7 +32,7 @@ sub _build__images {
     my $self   = shift;
     my @images = ();
     while (my $file = $self->work_dir->next) {
-        if ( $file->is_dir ){
+        if ( $file->is_dir and ( $self->opt->get_recursive() > 0 ) ){
             $self->msg_verbose(10,"Check dir %s",File::Basename::basename($file->stringify));
             unless (
                 File::Basename::basename($file->stringify) =~ /^\./ 
@@ -122,6 +122,46 @@ sub data_dir {
 
 sub work_dir { return shift->{_work_dir}; }
 
+sub clean_work_dir {
+    my $self = shift;
+
+    my $index_filename = $self->work_dir . '/index.html';
+    if ( -f $index_filename ){
+        $self->msg_verbose(1,"Remove " . $index_filename );
+        unlink($index_filename);
+    }else{
+        $self->msg("Can't find index file: " . $index_filename );
+    }
+
+    my $data_dir = join '/',$self->work_dir, $self->config->{data_dir_name};
+    if ( -d $data_dir ){
+        $self->msg_verbose(1,"Remove dir " . $data_dir );
+        File::Path::rmtree( $data_dir );
+    }else{
+        $self->msg("Can't find data dir:   " . $data_dir );
+    }
+
+    return if ( $self->opt->get_recursive() < 1 ) ;
+
+    while (my $file = $self->work_dir->next) {
+        if ( $file->is_dir ){
+            unless (
+                File::Basename::basename($file->stringify) =~ /^\./ 
+                or $self->work_dir->stringify eq $file->stringify
+            ){
+                $self->msg_verbose(1,"Go into %s",$file);
+
+                my $args = $self->{init_args};
+                $args->{work_dir} = $file;
+                $args->{link_to_parent_dir} = 1;
+                my $dir = App::StaticImageGallery::Dir->new(%$args);
+                $dir->clean_work_dir;
+            }
+        }
+    }
+
+    return;
+}
 #
 # TT
 ########################################################################################
@@ -171,7 +211,7 @@ App::StaticImageGallery::Dir - Handles a directory
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
 =head1 DESCRIPTION
 
@@ -229,6 +269,10 @@ version 0.001
 =head2 data_dir
 
 =head2 work_dir
+
+=head2 clean_work_dir
+
+Remove all files created by StaticImageGallery
 
 =head1 AUTHOR
 
